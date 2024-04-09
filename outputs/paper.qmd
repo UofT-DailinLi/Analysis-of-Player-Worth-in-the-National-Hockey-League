@@ -1,0 +1,132 @@
+---
+title: "NHL Value Play: An Analysis of Player Worth in the National Hockey League"
+
+author: Dailin(Ben) li
+thanks: "Code and data are available at: https://github.com/UofT-DailinLi/Analysis-of-Player-Worth-in-the-National-Hockey-League.git" 
+date: today
+
+editor: visual
+
+toc: true
+toc_depth: 2
+number-sections: true
+bibliography: reference.bib
+format: pdf
+
+---
+
+```{r echo=FALSE, message=FALSE}
+# Load the necessary library
+library(readr)
+library(here)
+# Load the necessary libraries
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+
+```
+
+
+\newpage
+
+# Introduction
+
+The National Hockey League (NHL) represents the pinnacle of professional ice hockey, and any player is proud to play in it. Every year, teams compete for the Stanley Cup, and in this fierce competition, player valuation is not only a matter of sports analysis but also a matter of economics. Accurate valuation of players saves teams money and increases the likelihood of winning the Stanley Cup.
+This film report introduces a sophisticated analytical method using the Points Shares method alongside the Scully method[@HockeyRefPointShares], which analyzes in detail the on-field contribution and economic value of the Florida Panthers for the 2022-2023 season. The Points Shares method is a method that quantifies a player's on-field performance, not only taking into account different positional contributions while being a single metric. Players' performance at different positions is quantified into a uniform unit for comparison. The Scully method can then be used as a complementary method to calculate each player's Marginal Revenue Product (MRP) based on the quantified player performance. This method effectively links player performance directly to salary. By integrating multiple methods, this paper evaluates the roster of the Florida Panthers to identify not only the most influential players but also the gap between expected and actual salaries.
+
+
+# Data
+
+## Data Collection
+The underlying data source for this article is the complete 2022-2023 NHL player data collected by PROFESSOR Laura. We filtered out the Floridian Panthers players, also known as FLA players, based on the team information. The rest of the information was partially taken from the hockey reference's website[@FLAPanthers2023]. This is an authoritative website that covers hockey statistics. We got the team's stats totalled on it. The players' salaries were obtained from Spotrac[@SpotracPanthersCapHit], and the salaries were averaged over a 5-year contract.
+
+## Data Processing
+The primary data processing method for this article is spreadsheet calculation in Excel. By organizing the initial data and adding additional data, we strictly follow the method of "points share" to calculate step by step by differentiating the position of each player, multiplying different coefficients, forwards is 5/7, and defensemen is 10/7, to unify the scores. The final calculation is the share of offensive points and defensive points, which are added together to get the total points share. The rest of the data presentation and integration of the images is realized by r. Data was cleaned and analyzed using the open-source statistical programming language R [@r], and additional packages from `ggplot2` [@ggplot2], `kableExtra` [@kableExtra], `here`[@here], and `readr` [@readr]. The cleaned dataset contains 16 observations, and 49 cleaned variables will be shown below at @tbl-cleaned.
+ 
+
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, label="tbl-cleaned"}
+#| tbl-cap: "First Ten Rows of Cleaned  Data"
+
+# Read the CSV file
+data = read_csv(
+    file = here("inputs/data.csv"), show_col_types = FALSE)
+# Assuming 'data' is your original data frame
+
+# Remove rows with NA values
+
+cleaned_data <- data[-c(30, 31, 32,33), ]
+
+
+# Now, if you want to apply the filtering for non-zero 'real salary' again after removing NA values, you can do:
+filtered_data <- cleaned_data[cleaned_data$`real saleary` != 0, ]
+
+data_first_13_columns <- filtered_data[, 1:12]
+
+kable(data_first_13_columns)
+```
+
+
+# Result
+
+
+The point-share method reveals essential information about the contributions of the Florida Panthers players on the field, and the top performers can show their contributions to the team through their points. The fact that some players scored well above the median shows that these players played a crucial role in the team's win. When we further analyze the economic dimension of player performance using the Scully method, we can find out which players are more or less economically valuable to the team than they are paid by calculating each player's marginal revenue product (MRP) and comparing it to their actual salary. The formula for calculating MRP is based on Berri's article "Salary Determination in the Presence of Fixed Revenue" and is as follows.
+
+$$
+MRP_{\text{player}} = X_i \times \left( \$179,195 + \frac{\$140,487}{1.05} \right)
+$$
+
+In the formula above, Xi is the total points shares calculated for each player, and since the study used 2011 data, we calculated it based on the inflation rate. We should multiply the result by 1.36 to end up with the 2023 projection [@USInflationCalculator].
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, label="tbl-salary"}
+#| tbl-cap: "Table of salary related data"
+
+filtered_data$adjusted_expected_salary <- filtered_data$`expected salary` * 1.36
+data_salary_columns <- filtered_data[, c(2,47,48,49,50)]
+kable(data_salary_columns)
+
+```
+
+
+
+
+According to the analyzed @tbl-salary, there is an interesting phenomenon that we can find in the case of the Florida Panthers: the actual salaries of all the players are higher than their estimated salaries based on their performance. When everyone's salary is higher than expected, the team is more willing to spend more money to retain players, which is also related to the team's geographical location. Because the hockey industry is developed in cold northern areas such as Toronto, players prefer to go to bigger teams; the salary is considerable, and they are also more likely to play. The Panthers are a southern city with a small market, so paying high prices is the only way to attract players. That's why, according to the analysis, everyone's actual salary is higher than the expected salary calculated based on performance.
+
+For example, Aleksander Barkov's actual salary was 10.000.000, while the expected salary was 2906531.5. The actual salary was more than 3.3 times higher than the expected one. There are also stars whose actual salary matches their expected salary, such as Eetu Luostarinen, whose actual salary is 150,000,000 and whose expected salary is 1493629.7. This shows that the team distributes his salary fairly and proves his contribution matches the salary.
+
+
+```{r echo=FALSE, message=FALSE}
+
+
+
+
+# Create the scatter plot
+ggplot(filtered_data, aes(x = `expected salary`, y = `real saleary`)) +
+  geom_point() +  # Add points
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "blue") +  # Add a y=x line
+  labs(x = "Expected Salary", y = "Real Salary", title = "Real vs. Expected Salary") +
+  theme_minimal()  # Use a minimal theme
+
+  
+```
+
+Similarly, we can learn from the graph that the actual salaries of all the players are higher than expected. The blue line in the graph represents that the actual salary matches the expected salary, and we can observe that the actual salary of all the players is above the blue line, which means that the actual salary of all the players is higher than the expected salary.
+
+# Discussion
+
+## Weaknesses
+
+These methods may not have a way to fully consider a player's value because quantitative models can only say that they do their best to reproduce the real-world situation, but there is no 100% reproduction. For example, neither the point share method nor the Scully method ever considers the marketability of a player; the models are focused on a player's scoring ability. However, the player may be more popular with the audience, bringing more market value. In addition, the Scully model has many assumptions, such as a linear relationship between a player's performance and earnings, but this assumption may only hold in some cases.
+
+## Future Directions
+
+Many additional metrics can be considered in future analyses, such as win shares and even off-field contributions, such as market impact. This analysis is limited to the current season. Still, in the future, it will be possible to conduct a longitudinal study of players over multiple seasons. At the same time, it will be possible to determine how a player's value has changed over time to determine the player's current value better.
+
+
+\newpage
+# Reference
